@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.open.As">
+
+	<sql id="Where">
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==0">
+				AND (TITLE LIKE CONCAT('%',#{searchKeyword},'%') OR CONT like CONCAT('%',#{searchKeyword},'%'))
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==1">
+				AND TITLE LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==2">
+				AND CONT LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+	 	</if>
+	</sql>
+	
+	<select id="selectContents" parameterType="breplyVO" resultType="breplyVO">
+		/* board.selectContents */
+		<![CDATA[
+			 SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, ATCH_FILE_ID atchFileId
+				, F_USER_NM(RGST_ID) name
+		     FROM  T_AS TB
+			 WHERE  USE_YN='Y'	
+				 AND SEQ = #{seq}
+		]]>
+	</select>
+		<select id="selectReplyContents" parameterType="breplyVO" resultType="breplyVO">
+		/* reply.selectContents */
+		<![CDATA[
+			 SELECT  
+				  BREPLY_SEQ breplySeq
+				, SUB_SEQ subSeq
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, ATCH_FILE_ID atchFileId
+				, F_USER_NM(RGST_ID) name
+		     FROM  T_AS_REPLY 
+			 WHERE  USE_YN='Y'	
+				 AND SUB_SEQ = #{seq}
+		]]>
+	</select>
+	
+	
+	<select id="selectList" parameterType="cmmnDefaultVO" resultType="breplyVO">
+		/* board.selectList */
+		<![CDATA[
+      	     SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, F_USER_NM(RGST_ID) name
+				, ATCH_FILE_ID atchFileId
+		     FROM T_AS TB
+			 WHERE USE_YN='Y'	
+	      ]]>
+		     <include refid="Where"/>	 
+	     <![CDATA[ 
+	    		ORDER BY SEQ DESC
+				LIMIT  #{firstIndex} , #{recordCountPerPage}
+		]]>
+	</select>	
+
+
+	<select id="selectCount" parameterType="cmmnDefaultVO" resultType="int">
+		/* board.selectCount */
+		<![CDATA[
+			SELECT 
+				COUNT(SEQ) cnt 
+			FROM T_AS
+			WHERE USE_YN='Y' 
+		]]>
+			 <include refid="Where"/>
+	</select>
+	
+	<insert id="insertContents" parameterType="breplyVO">
+		/* board.insertContents */
+		<![CDATA[
+			INSERT INTO T_AS(
+           	  	  SEQ 
+				, TITLE 
+				, CONT
+				, RGST_ID 
+				, ATCH_FILE_ID 
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TB.SEQ)+1,1) FROM T_AS TB)
+				,#{title ,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+		<insert id="insertReplyContents" parameterType="breplyVO">
+		/* reply.insertContents */
+		<![CDATA[
+			INSERT INTO T_AS_REPLY(
+           	  	  SUB_SEQ 
+				, CONT
+				, RGST_ID 
+				, ATCH_FILE_ID 
+			)
+			VALUES (
+				#{subSeq,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<update id="updateContents" parameterType="breplyVO">
+		/* board.updateContents */
+		<![CDATA[
+			UPDATE T_AS     
+			 SET 
+				  TITLE = #{title ,jdbcType=VARCHAR} 
+				, CONT = #{cont ,jdbcType=VARCHAR}
+				, RVSE_DT = NOW()
+				, ATCH_FILE_ID = #{atchFileId ,jdbcType=VARCHAR}
+			WHERE  SEQ = #{seq}  
+		]]>
+	</update>
+	<update id="updateReplyContents" parameterType="breplyVO">
+		/* reply.updateContents */
+		<![CDATA[
+			UPDATE T_AS_REPLY     
+			 SET 
+				 CONT = #{cont ,jdbcType=VARCHAR}
+				, RVSE_DT = NOW()
+				, ATCH_FILE_ID = #{atchFileId ,jdbcType=VARCHAR}
+			WHERE  BREPLY_SEQ = #{breplySeq}   
+		]]>
+	</update>
+	
+	<update id="deleteContents" parameterType="breplyVO">
+		/* board.deleteContents */
+		<![CDATA[
+			UPDATE T_AS
+		       SET
+	          	 USE_YN='N'
+			WHERE SEQ=#{seq}
+		]]>
+	</update>
+	<update id="deleteReplyContents" parameterType="breplyVO">
+		/* reply.deleteContents */
+		<![CDATA[
+			UPDATE T_AS_REPLY
+		       SET
+	          	 USE_YN='N'
+			WHERE BREPLY_SEQ = #{breplySeq}
+		]]>
+	</update>
+
+</mapper>

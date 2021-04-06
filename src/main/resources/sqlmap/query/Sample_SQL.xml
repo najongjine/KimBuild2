@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.open.Sample">
+
+	<sql id="Where">
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==0">
+				AND (TITLE LIKE CONCAT('%',#{searchKeyword},'%') OR CONT like CONCAT('%',#{searchKeyword},'%'))
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==1">
+				AND TITLE LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==2">
+				AND CONT LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+	 	</if>
+	</sql>
+	
+	<select id="selectContents" parameterType="sampleVO" resultType="sampleVO">
+		/* Sample.selectContents */
+		<![CDATA[
+			 SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, ATCH_FILE_ID atchFileId
+				, F_USER_NM(RGST_ID) name
+				, STA_DATE staDate
+				, END_DATE endDate
+				, NOTI_YN notiYn
+				, HP hp
+				, MAIL mail
+		     FROM  T_SAMPLE TS
+			 WHERE  USE_YN='Y'	
+				 AND SEQ = #{seq}
+		]]>
+	</select>
+	
+	
+	
+	<select id="selectList" parameterType="cmmnDefaultVO" resultType="sampleVO">
+		/* Sample.selectList */
+		<![CDATA[
+      	     SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, F_USER_NM(RGST_ID) name
+				, ATCH_FILE_ID atchFileId
+				, STA_DATE staDate
+				, END_DATE endDate
+				, HP hp
+				, MAIL mail
+		     FROM T_SAMPLE TS
+			 WHERE USE_YN='Y'	
+	      ]]>
+		     <include refid="Where"/>	 
+	     <![CDATA[ 
+	    		ORDER BY SEQ DESC
+				LIMIT  #{firstIndex} , #{recordCountPerPage}
+		]]>
+	</select>	
+
+
+	<select id="selectCount" parameterType="cmmnDefaultVO" resultType="int">
+		/* Sample.selectCount */
+		<![CDATA[
+			SELECT 
+				COUNT(SEQ) cnt 
+			FROM T_SAMPLE
+			WHERE USE_YN='Y' 
+		]]>
+			 <include refid="Where"/>
+	</select>
+	
+	<insert id="insertContents" parameterType="sampleVO">
+		/* Sample.insertContents */
+		<![CDATA[
+			INSERT INTO T_SAMPLE(
+           	  	  SEQ 
+				, TITLE 
+				, CONT
+				, RGST_ID 
+				, ATCH_FILE_ID 
+				, STA_DATE
+				, END_DATE 
+				, NOTI_YN 
+				, HP
+				, MAIL
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TS.SEQ)+1,1) FROM T_SAMPLE TS)
+				,#{title ,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+				,#{staDate ,jdbcType=VARCHAR}
+				,#{endDate ,jdbcType=VARCHAR}
+				,#{notiYn ,jdbcType=VARCHAR}
+				,#{hp ,jdbcType=VARCHAR}
+				,#{mail ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<update id="updateContents" parameterType="sampleVO">
+		/* Sample.updateContents */
+		<![CDATA[
+			UPDATE T_SAMPLE     
+			 SET 
+				  TITLE = #{title ,jdbcType=VARCHAR} 
+				, CONT = #{cont ,jdbcType=VARCHAR}
+				, RVSE_DT = NOW()
+				, ATCH_FILE_ID = #{atchFileId ,jdbcType=VARCHAR}
+				, STA_DATE = #{staDate ,jdbcType=VARCHAR}
+				, END_DATE  = #{endDate ,jdbcType=VARCHAR}
+				, NOTI_YN  = #{notiYn ,jdbcType=VARCHAR}
+				, HP = #{hp ,jdbcType=VARCHAR}
+				, MAIL = #{mail ,jdbcType=VARCHAR}
+			WHERE  SEQ = #{seq}  
+		]]>
+	</update>
+	
+	<update id="deleteContents" parameterType="sampleVO">
+		/* Sample.deleteContents */
+		<![CDATA[
+			UPDATE T_SAMPLE
+		       SET
+	          	 USE_YN='N'
+			WHERE SEQ=#{seq}
+		]]>
+	</update>
+
+
+	
+	
+	
+	
+</mapper>

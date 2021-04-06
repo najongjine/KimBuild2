@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.open.Mn">
+
+	<sql id="Where">
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==0">
+				AND (MENU_NM LIKE CONCAT('%',#{searchKeyword},'%') OR MENU_CD like CONCAT('%',#{searchKeyword},'%'))
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==1">
+				AND MENU_NM LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==2">
+				AND MENU_CD LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+	 	</if>
+	 	<if test="schEtc03 !=null and schEtc03 !='' and schEtc03 ==''">
+			AND (MENU_CL = 'ma' OR MENU_CL =  'ft')
+		</if>
+		<if test="schEtc03 !=null and schEtc03 !='' and schEtc03 =='ma'">
+			AND MENU_CL =  #{schEtc03}
+		</if>
+		<if test="schEtc03 !=null and schEtc03 !='' and schEtc03 =='ft'">
+			AND MENU_CL =  #{schEtc03}
+		</if>
+	</sql>
+	
+	<select id="selectContents" parameterType="mnVO" resultType="mnVO">
+		/* Mn.selectContents */
+		<![CDATA[
+			 SELECT  
+				MENU_SEQ menuSeq
+				, MENU_GROUP_SEQ menuGroupSeq
+				, LVL lvl
+				, NO no
+				, MENU_NM menuNm
+				, MENU_CD menuCd
+				, URL url
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, F_USER_NM(RGST_ID) rgstId
+				, MENU_CL menuCl
+				, DESCRIPTION description
+				, BOARD_CL boardCl
+		     FROM  T_MENU_INFO
+			 WHERE  USE_YN='Y'	
+				 AND MENU_SEQ = #{menuSeq}
+		]]>
+	</select>
+	
+	
+	
+	<select id="selectList" parameterType="cmmnDefaultVO" resultType="mnVO">
+		/* Mn.selectList */
+		<![CDATA[
+		      	  SELECT 
+					MENU_SEQ menuSeq
+					, MENU_GROUP_SEQ menuGroupSeq
+					, LVL lvl
+					, NO no
+					, MENU_NM menuNm
+					, MENU_CD menuCd
+					, URL url
+					, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+					, F_USER_NM(RGST_ID) rgstId
+					, MENU_CL menuCl
+					, DESCRIPTION description
+					, BOARD_CL boardCl
+	             FROM  T_MENU_INFO 			
+			     WHERE  USE_YN='Y' 
+			     	AND MENU_SEQ = MENU_GROUP_SEQ
+	      ]]>
+		     <include refid="Where"/>	 
+	     <![CDATA[ 
+	    		ORDER BY  MENU_SEQ DESC
+				LIMIT  #{firstIndex} , #{recordCountPerPage}
+		]]>
+	</select>	
+
+
+	<select id="selectCount" parameterType="cmmnDefaultVO" resultType="int">
+		/* Mn.selectCount */
+		<![CDATA[
+			SELECT 
+				COUNT(MENU_SEQ) cnt 
+			FROM T_MENU_INFO
+			WHERE USE_YN='Y' 
+		     	AND MENU_SEQ = MENU_GROUP_SEQ
+		]]>
+			 <include refid="Where"/>
+	</select>
+	
+	<insert id="insertContents" parameterType="mnVO">
+		/* Mn.insertContents */
+		<![CDATA[
+			INSERT INTO T_MENU_INFO(
+           	   MENU_SEQ
+				, MENU_GROUP_SEQ
+				, LVL
+				, NO
+				, MENU_NM
+				, MENU_CD
+				, URL
+				, RGST_ID
+				, MENU_CL
+				, DESCRIPTION
+				, BOARD_CL
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TN.MENU_SEQ)+1,1) FROM T_MENU_INFO TN)
+				,(SELECT IFNULL(MAX(TN.MENU_SEQ)+1,1) FROM T_MENU_INFO TN)
+				,#{lvl ,jdbcType=INTEGER}
+				,#{no ,jdbcType=INTEGER}
+				,#{menuNm ,jdbcType=VARCHAR}
+				,#{menuCd ,jdbcType=VARCHAR}
+				,#{url ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{menuCl ,jdbcType=VARCHAR}
+				,#{description ,jdbcType=VARCHAR}
+				,#{boardCl ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<insert id="subInsertContents" parameterType="mnVO">
+		/* Mn.subInsertContents */
+		<![CDATA[
+			INSERT INTO T_MENU_INFO(
+           	   MENU_SEQ
+				, MENU_GROUP_SEQ
+				, LVL
+				, NO
+				, MENU_NM
+				, MENU_CD
+				, URL
+				, RGST_ID
+				, MENU_CL
+				, DESCRIPTION
+				, BOARD_CL
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TM.MENU_SEQ)+1,1) FROM T_MENU_INFO TM)
+				,#{menuSeq ,jdbcType=INTEGER}
+				,#{lvl ,jdbcType=INTEGER}
+				,#{no ,jdbcType=INTEGER}
+				,#{menuNm ,jdbcType=VARCHAR}
+				,#{menuCd ,jdbcType=VARCHAR}
+				,#{url ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{menuCl ,jdbcType=VARCHAR}
+				,#{description ,jdbcType=VARCHAR}
+				,#{boardCl ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<update id="updateContents" parameterType="mnVO">
+		/* Mn.updateContents */
+		<![CDATA[
+			UPDATE T_MENU_INFO     
+			 SET  MENU_NM =#{menuNm ,jdbcType=VARCHAR}
+				, MENU_CD =#{menuCd ,jdbcType=VARCHAR}
+				, URL 	 = #{url ,jdbcType=VARCHAR}
+		     	, RVSE_ID =  #{loginSeq ,jdbcType=VARCHAR}   	
+		      	, RVSE_DT =  NOW()  	 
+		      	, LVL = #{lvl ,jdbcType=INTEGER}
+		      	, MENU_CL = #{menuCl ,jdbcType=VARCHAR}
+		      	, NO = #{no ,jdbcType=INTEGER}
+				, DESCRIPTION = #{description ,jdbcType=VARCHAR}
+				, BOARD_CL = #{boardCl ,jdbcType=VARCHAR}
+			WHERE  MENU_SEQ = #{menuSeq ,jdbcType=INTEGER}  
+		]]>
+	</update>
+	
+	<update id="deleteContents" parameterType="mnVO">
+		/* Mn.deleteContents */
+		<![CDATA[
+			UPDATE T_MENU_INFO
+		       SET
+	          	 USE_YN='N'
+			WHERE MENU_SEQ=#{menuSeq}
+		]]>
+	</update>
+	
+	<select id="menuSelectList" parameterType="cmmnDefaultVO" resultType="mnVO">
+		/* Mn.menuSelectList */
+		<![CDATA[
+		SELECT
+			MI.MENU_SEQ menuSeq
+			, MI.MENU_GROUP_SEQ menuGroupSeq
+			, MI.LVL lvl
+			, MI.NO no
+			, MI.MENU_NM menuNm
+			, MI.MENU_CD menuCd
+			, MI.URL url
+			, F_USER_NM(MI.RGST_ID) rgstId
+			, DATE_FORMAT(MI.RGST_DT , '%Y.%m.%d') rgstDt
+			, MI.MENU_CL menuCl
+            , CASE WHEN UA.MENU_SEQ IS NULL THEN 'N' ELSE 'Y' END menuChk
+			, MI.DESCRIPTION description
+			, MI.BOARD_CL boardCl
+			, MI.ICON_CL iconCl
+		FROM T_MENU_INFO MI
+            LEFT OUTER JOIN T_AD_USER_AUTH_MENU UA
+             ON MI.MENU_SEQ = UA.MENU_SEQ
+              AND UA.ID = #{authCode}
+		WHERE MI.LVL = #{lvl}
+			AND MI.USE_YN='Y'
+			AND MI.MENU_CL = #{menuCl}
+		]]>
+			<if test="menuSeq !=null and menuSeq !=''">
+				AND MI.MENU_GROUP_SEQ = #{menuSeq}
+			</if>
+			<if test="schEtc03 == 'LAYOUT'">
+				AND UA.MENU_SEQ IS NOT NULL
+			</if>
+		ORDER BY MI.NO
+	</select>
+	
+	
+	<select id="menuSelectContents" parameterType="mnVO" resultType="mnVO">
+	/* Mn.menuSelectContents */
+		SELECT
+			MENU_SEQ menuSeq
+			, MENU_GROUP_SEQ menuGroupSeq
+			, LVL lvl
+			, NO no
+			, MENU_NM menuNm
+			, MENU_CD menuCd
+			, URL url
+			, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+			, F_USER_NM(RGST_ID) rgstId
+			, MENU_CL menuCl
+			, DESCRIPTION description
+			, BOARD_CL boardCl
+		FROM T_MENU_INFO
+		WHERE URL = #{url}
+			AND USE_YN='Y'
+			AND MENU_CL = #{menuCl}
+	</select>
+	
+	<select id="overlapSelectCount" parameterType="mnVO" resultType="int">
+		<![CDATA[
+		/* Mn.overlapSelectCount */
+			SELECT 
+				COUNT(MENU_SEQ) cnt 
+			FROM T_MENU_INFO
+			WHERE USE_YN = 'Y'
+			  AND MENU_CD = #{menuCd}
+			  AND MENU_CL = #{menuCl}
+		]]>
+	</select>
+	
+	<select id="menuAuthSelectList" parameterType="mnVO" resultType="String">
+		<![CDATA[
+		/* Mn.menuAuthSelectList */
+		SELECT
+			 MI.MENU_CD menuCd
+		FROM T_MENU_INFO MI
+            LEFT OUTER JOIN T_AD_USER_AUTH_MENU UA
+             ON MI.MENU_SEQ = UA.MENU_SEQ
+              AND UA.ID = #{authCode}
+		WHERE MI.USE_YN='Y'
+			AND MI.LVL = #{lvl}
+			AND MI.MENU_CL = #{menuCl}
+			AND UA.MENU_SEQ IS NOT NULL
+		]]>
+	</select>	
+	
+	<select id="menuFtSelectList" parameterType="mnVO" resultType="mnVO">
+		<![CDATA[
+		/* Mn.menuFtSelectList */
+		SELECT
+			 MI.MENU_SEQ menuSeq,
+			 MI.MENU_NM menuNm,
+			 MI.URL url,
+			 MI.MENU_GROUP_SEQ menuGroupSeq,
+			 MI.LVL lvl,
+			 MI.NO no,
+			 MI.MENU_CD menuCd
+		FROM T_MENU_INFO MI
+		WHERE MI.LVL = #{schEtc01}
+			AND MI.USE_YN='Y'
+			AND MI.MENU_CL = #{schEtc03}
+		ORDER BY MI.NO 	
+		]]>
+	</select>	
+	
+	<select id="boardDivnSelectContents" parameterType="mnVO" resultType="String">
+	/* Mn.boardDivnSelectContents */
+		SELECT
+			BOARD_CL boardCl
+		FROM T_MENU_INFO
+		WHERE  USE_YN='Y'
+			AND MENU_CL = #{schEtc09}
+			AND MENU_CD = #{boardCd}
+	</select>
+	
+	<select id="menuNmSelectContents" parameterType="mnVO" resultType="String">
+	/* Mn.menuNmSelectContents */
+		SELECT
+			MENU_NM menuNm
+		FROM T_MENU_INFO
+		WHERE  USE_YN='Y'
+			AND MENU_CD = #{menuCd}
+			AND MENU_CL = #{menuCl}
+	</select>
+	
+	
+	
+	<select id="frontMenuSelectList" parameterType="cmmnDefaultVO" resultType="mnVO">
+		/* Mn.menuSelectList */
+		<![CDATA[
+		SELECT
+			MI.MENU_SEQ menuSeq
+			, MI.MENU_GROUP_SEQ menuGroupSeq
+			, MI.LVL lvl
+			, MI.NO no
+			, MI.MENU_NM menuNm
+			, MI.MENU_CD menuCd
+			, MI.URL url
+			, F_USER_NM(MI.RGST_ID) rgstId
+			, DATE_FORMAT(MI.RGST_DT , '%Y.%m.%d') rgstDt
+			, MI.MENU_CL menuCl
+			, MI.DESCRIPTION description
+			, MI.BOARD_CL boardCl
+			, MI.ICON_CL iconCl
+			, MI.HIDE hide
+			, MI.NOTRDY notRdy
+		FROM T_MENU_INFO MI
+		WHERE MI.LVL = #{lvl}
+			AND MI.USE_YN='Y'
+			AND MI.MENU_CL = #{menuCl}
+		]]>
+			<if test="menuSeq !=null and menuSeq !=''">
+				AND MI.MENU_GROUP_SEQ = #{menuSeq}
+			</if>
+		ORDER BY MI.NO
+	</select>
+	
+	<select id="menuSelSelectList" parameterType="mnVO" resultType="mnVO">
+		/* mn.menuSelectList */
+	    SELECT
+			MENU_SEQ menuSeq
+			, MENU_GROUP_SEQ menuGroupSeq
+			, MENU_CD menuCd
+			, MENU_NM menuNm
+		FROM T_MENU_INFO
+		WHERE USE_YN = 'Y'
+			AND MENU_CL = 'ft' 
+		    AND BOARD_CL='7'
+			AND LVL = #{lvl}
+			<if test="menuCd != null and menuCd != ''">
+			AND MENU_GROUP_SEQ = (SELECT MENU_SEQ FROM T_MENU_INFO WHERE MENU_CD = #{menuCd} AND MENU_CL ='ft' AND USE_YN='Y')
+			</if>
+		ORDER BY NO	
+	</select>	
+	
+	
+	
+	
+</mapper>

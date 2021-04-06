@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.open.CmmnBoard">
+
+	<sql id="Where">
+		
+		<if test="schEtc01 !=null and schEtc01 !='' ">
+			AND YEAR = #{schEtc01}
+		</if>
+		<if test="schEtc04 !=null and schEtc04 !='' ">
+			AND SITE_CLCD LIKE CONCAT('%',#{schEtc04},'%')		
+		</if>
+		<if test="schEtc02 !=null and schEtc02 !=''">
+			AND STATUS = #{schEtc02}
+		</if>
+		<if test="siteClcd !=null and siteClcd !='' ">
+			AND SITE_CLCD LIKE CONCAT('%',#{siteClcd},'%')		
+		</if>
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==0">
+				AND (TITLE LIKE CONCAT('%',#{searchKeyword},'%') OR CONT like CONCAT('%',#{searchKeyword},'%'))
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==1">
+				AND TITLE LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==2">
+				AND CONT LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+	 	</if>
+	 	<if test="dateCondition !=null and dateCondition !='' and dateCondition ==0">
+			<if test="searchStartDate !=null and searchStartDate !=''">
+				 <![CDATA[
+					AND DATE_FORMAT(RGST_DT,'%Y.%m.%d') >= #{searchStartDate}
+			 	]]>
+			 </if>
+			 <if test="searchEndDate !=null and searchEndDate !=''">
+			 	<![CDATA[
+			 		AND DATE_FORMAT(RGST_DT,'%Y.%m.%d') <= #{searchEndDate}
+		 		]]>
+		 	</if>
+		</if>
+		
+	</sql>
+	<select id="selectContents" parameterType="cmmnBoardVO" resultType="cmmnBoardVO">
+		/* cmmnBoard.selectContents */
+		<![CDATA[
+		  SELECT  
+			BOARD_SEQ boardSeq 
+			, BOARD_GRP_SEQ boardGrpSeq
+			, TITLE title
+			, CONT cont
+			, F_FILE_ID(ATCH_FILE_ID) atchFileId
+			, F_FILE_ID(IMAGE_FILE_ID) imageFileId
+			, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+			, RGST_ID rgstId
+			, NOTI_YN notiYn
+			, BOARD_CD boardCd
+			, BOARD_DIVN boardDivn
+			, VIEW_NUM viewNum
+			, F_USER_NM(TB.RGST_ID) name
+			, SECRET_YN secretYn
+			, SITE_CLCD siteClcd
+			, F_SITE_NM(REGEXP_REPLACE(SUBSTRING_INDEX(SITE_CLCD,',',1),'[\\[\\]]','') ) siteClcdNm
+			, CHAR_LENGTH(SITE_CLCD) - CHAR_LENGTH(REPLACE(SITE_CLCD,',','')) siteClcdCnt
+			, ACPT_ST_DT acptStDt
+			, ACPT_END_DT acptEndDt
+			, DATE_FORMAT(NOTI_ST_DT,'%Y.%m.%d') notiStDt
+			, DATE_FORMAT(NOTI_END_DT,'%Y.%m.%d') notiEndDt
+			, YEAR year
+			, STATUS status
+			, PWD pwd
+			, QNA_NAME qnaName
+			, QNA_EMAIL qnaEmail
+			, QNA_MBLP qnaMblp
+	     FROM T_BOARD TB
+		 WHERE USE_YN='Y'	
+	 		AND BOARD_SEQ = #{boardSeq}
+		]]>
+	</select>
+
+
+	
+	<select id="selectList" parameterType="cmmnDefaultVO" resultType="cmmnBoardVO">
+		/* cmmnBoard.selectList */
+		<![CDATA[
+	    	SELECT 
+				 TB.BOARD_SEQ boardSeq 
+				, TB.BOARD_GRP_SEQ boardGrpSeq
+				, TB.TITLE title
+				, TB.CONT cont
+				, DATE_FORMAT(TB.RGST_DT,'%Y.%m.%d') rgstDt
+				, TB.RGST_ID rgstId
+				, TB.BOARD_CD boardCd
+				, TB.BOARD_DIVN boardDivn
+				, TB.VIEW_NUM viewNum
+				, ABS(DATEDIFF(TB.RGST_DT,NOW())*24) newChk
+				, TB.SECRET_YN secretYn
+				, (SELECT COUNT(BOARD_SEQ) FROM T_BOARD WHERE USE_YN='Y' AND BOARD_SEQ <> BOARD_GRP_SEQ AND BOARD_GRP_SEQ = TB.BOARD_SEQ) subCnt
+				, F_USER_NM(TB.RGST_ID) name
+				, F_FILE_ID(TB.ATCH_FILE_ID) atchFileId
+				, F_FILE_ID(TB.IMAGE_FILE_ID) imageFileId
+				, F_SITE_NM(REGEXP_REPLACE(SUBSTRING_INDEX(SITE_CLCD,',',1),'[\\[\\]]','') ) siteClcdNm
+				, CHAR_LENGTH(SITE_CLCD) - CHAR_LENGTH(REPLACE(SITE_CLCD,',','')) siteClcdCnt
+				, ACPT_ST_DT acptStDt
+				, ACPT_END_DT acptEndDt
+				, DATE_FORMAT(NOTI_ST_DT,'%Y.%m.%d') notiStDt
+				, DATE_FORMAT(NOTI_END_DT,'%Y.%m.%d') notiEndDt
+				, YEAR year
+				, (SELECT TA.FILE_EXTSN FROM T_ATCH_FILE_DETAIL TA WHERE TA.ATCH_FILE_ID = TB.ATCH_FILE_ID AND TA.DEL_YN='N' LIMIT 1) fileExtsn
+				, CASE WHEN DATE_FORMAT(NOTI_ST_DT,'%Y.%m.%d') <= DATE_FORMAT(NOW(), '%Y.%m.%d') AND DATE_FORMAT(NOW(), '%Y.%m.%d') <= DATE_FORMAT(NOTI_END_DT,'%Y.%m.%d') AND NOTI_YN = 'Y' THEN 'Y'
+				  ELSE 'N' END notiYn
+				, TB.STATUS status
+				, TB.QNA_NAME qnaName
+				, TB.QNA_EMAIL qnaEmail
+				, TB.QNA_MBLP qnaMblp
+		    FROM  T_BOARD TB
+	     	WHERE USE_YN = 'Y'
+	     		AND BOARD_SEQ = BOARD_GRP_SEQ
+	     		AND BOARD_CD = #{boardCd}
+		]]>
+		  	<include refid="Where"/>
+		    <choose>
+		    	<when test="schEtc07 != null and schEtc07 != '' and schEtc07 == 'main'">
+	     			ORDER BY notiYn DESC, BOARD_SEQ DESC
+     				LIMIT 4
+		     	</when>
+		     	<otherwise>
+		     		ORDER BY notiYn DESC, BOARD_SEQ DESC
+					LIMIT #{firstIndex} , #{recordCountPerPage}
+		     	</otherwise>
+		    </choose>
+	</select>	
+	
+	
+	<select id="selectCount" parameterType="cmmnDefaultVO" resultType="int">
+		/* cmmnBoard.selectCount */
+		<![CDATA[
+			SELECT 
+				COUNT(TB.BOARD_SEQ) cnt 
+			FROM T_BOARD TB
+			WHERE TB.USE_YN='Y' 
+				AND BOARD_SEQ = BOARD_GRP_SEQ
+				AND BOARD_CD = #{boardCd}
+		]]>
+			 <include refid="Where"/>
+	</select>
+	
+	<select id="subSelectList" parameterType="cmmnDefaultVO" resultType="cmmnBoardVO">
+		/* cmmnBoard.subSelectList */
+		<![CDATA[
+			 SELECT 
+			   	BOARD_SEQ boardSeq 
+				, BOARD_GRP_SEQ boardGrpSeq
+				, TITLE title
+				, CONT cont
+				, F_FILE_ID(ATCH_FILE_ID) atchFileId
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, NOTI_YN notiYn
+				, BOARD_CD boardCd
+				, BOARD_DIVN boardDivn
+				, VIEW_NUM viewNum
+				, F_USER_NM(TB.RGST_ID) name
+				, SITE_CLCD siteClcd
+		     FROM  T_BOARD TB
+     		 WHERE USE_YN = 'Y'
+     		 	AND BOARD_GRP_SEQ = #{boardSeq}
+     			AND BOARD_SEQ <> BOARD_GRP_SEQ
+		]]>
+	</select>	
+
+	<select id="selectMaxSeqContents" parameterType="cmmnBoardVO" resultType="int">
+		/* cmmnBoard.boardSeqSelect */
+		<![CDATA[
+		  SELECT IFNULL(MAX(BOARD_SEQ)+1,1) boardSeq FROM T_BOARD
+		]]>
+	</select>
+	
+	<insert id="insertContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.insertContents */
+			INSERT INTO T_BOARD(
+          		BOARD_SEQ 
+				, BOARD_GRP_SEQ
+				, TITLE
+				, CONT
+				, ATCH_FILE_ID
+				, IMAGE_FILE_ID
+				, RGST_ID 
+				, NOTI_YN 
+				, BOARD_CD 
+				, BOARD_DIVN
+				<if test="secretYn != null and secretYn !=''">
+				, SECRET_YN
+				</if>
+				, SITE_CLCD
+				, ACPT_ST_DT
+				, ACPT_END_DT
+				<if test="notiStDt !=null and notiStDt !=''">
+					, NOTI_ST_DT
+				</if>
+				<if test="notiEndDt !=null and notiEndDt !=''">
+					, NOTI_END_DT
+				</if>				
+				, YEAR
+				<if test="pwd !=null and pwd !=''">
+				, PWD
+				</if>
+				, QNA_NAME
+				, QNA_EMAIL
+				, QNA_MBLP
+			)
+			VALUES (
+				#{boardSeq}
+				,#{boardSeq}
+				,#{title ,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+				,#{imageFileId ,jdbcType=VARCHAR}
+				,IFNULL(IF(#{frontLoginSeq ,jdbcType=VARCHAR} ='',null,#{frontLoginSeq ,jdbcType=VARCHAR}),#{loginSeq ,jdbcType=VARCHAR})
+				,IFNULL(#{notiYn ,jdbcType=VARCHAR},'N')
+				,#{boardCd ,jdbcType=VARCHAR}
+				,#{boardDivn ,jdbcType=VARCHAR}
+				<if test="secretYn != null and secretYn !=''">
+				,#{secretYn, jdbcType=VARCHAR}
+				</if>
+				,#{siteClcd, jdbcType=VARCHAR}
+				,#{acptStDt, jdbcType=VARCHAR}
+				,#{acptEndDt, jdbcType=VARCHAR}
+				<if test="notiStDt !=null and notiStDt !=''">
+					,#{notiStDt, jdbcType=VARCHAR}
+				</if>
+				<if test="notiEndDt !=null and notiEndDt !=''">
+					,#{notiEndDt, jdbcType=VARCHAR}
+				</if>
+				,#{year, jdbcType=VARCHAR}
+				<if test="pwd !=null and pwd !=''">
+				,#{pwd, jdbcType=VARCHAR}
+				</if>
+				,#{qnaName ,jdbcType=VARCHAR}
+				,#{qnaEmail ,jdbcType=VARCHAR}
+				,#{qnaMblp ,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<insert id="subInsertContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.subInsertContents */
+		<![CDATA[
+			INSERT INTO T_BOARD(
+           	   	  BOARD_SEQ 
+				, BOARD_GRP_SEQ
+				, TITLE
+				, CONT
+				, ATCH_FILE_ID 
+				, RGST_ID 
+				, NOTI_YN 
+				, BOARD_CD
+				, BOARD_DIVN
+				, SITE_CLCD
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TB.BOARD_SEQ)+1,1) FROM T_BOARD TB)
+				,#{boardGrpSeq ,jdbcType=VARCHAR}
+				,CONCAT('RE : ',#{title ,jdbcType=VARCHAR})
+				,#{cont ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+				,IFNULL(IF(#{frontLoginSeq ,jdbcType=VARCHAR} ='',null,#{frontLoginSeq ,jdbcType=VARCHAR}),#{loginSeq ,jdbcType=VARCHAR})
+				,IFNULL(#{notiYn ,jdbcType=VARCHAR},'N')
+				,#{boardCd ,jdbcType=VARCHAR}
+				,#{boardDivn ,jdbcType=VARCHAR}
+				,#{siteClcd, jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<update id="updateContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.updateContents */
+			UPDATE T_BOARD SET
+				 TITLE = #{title ,jdbcType=VARCHAR}
+				, CONT = #{cont ,jdbcType=VARCHAR}
+				, ATCH_FILE_ID  = #{atchFileId ,jdbcType=VARCHAR}
+				, IMAGE_FILE_ID  = #{imageFileId ,jdbcType=VARCHAR}
+				, RVSE_DT  = NOW()
+				, RVSE_ID  = #{loginSeq ,jdbcType=VARCHAR}
+				, NOTI_YN  = IFNULL(#{notiYn ,jdbcType=VARCHAR},'N')
+				, SECRET_YN = IFNULL(#{secretYn, jdbcType=VARCHAR},'N')
+				, SITE_CLCD = #{siteClcd, jdbcType=VARCHAR}
+				, ACPT_ST_DT = #{acptStDt, jdbcType=VARCHAR}
+				, ACPT_END_DT = #{acptEndDt, jdbcType=VARCHAR}
+				<if test="notiStDt !=null and notiStDt !='' and notiEndDt !=null and notiEndDt !=''">
+					, NOTI_ST_DT = #{notiStDt, jdbcType=VARCHAR}
+					, NOTI_END_DT = #{notiEndDt, jdbcType=VARCHAR}
+				</if>
+				, YEAR = #{year, jdbcType=VARCHAR}
+				, QNA_NAME = #{qnaName, jdbcType=VARCHAR}
+				, QNA_MBLP = #{qnaMblp, jdbcType=VARCHAR}
+				, QNA_EMAIL = #{qnaEmail, jdbcType=VARCHAR}
+			WHERE  BOARD_SEQ = #{boardSeq}
+	</update>
+	
+	<update id="subUpdateContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.subUpdateContents */
+			UPDATE T_BOARD SET   
+				  CONT = #{cont ,jdbcType=VARCHAR}
+				, ATCH_FILE_ID  = #{atchFileId ,jdbcType=VARCHAR}
+				, SITE_CLCD = #{siteClcd, jdbcType=VARCHAR}
+				, RVSE_DT  = NOW()
+				, RVSE_ID  = #{loginSeq ,jdbcType=VARCHAR}
+			WHERE  BOARD_SEQ = #{boardSeq}  
+	</update>
+	
+	<update id="viewNumUpdateContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.viewNumUpdateContents */
+		<![CDATA[
+			UPDATE T_BOARD SET  
+				VIEW_NUM = VIEW_NUM + 1
+			WHERE  BOARD_SEQ = #{boardSeq}  
+		]]>
+	</update>
+	
+	<update id="deleteContents" parameterType="cmmnBoardVO">
+		/* cmmnBoard.deleteContents */
+		<![CDATA[
+			UPDATE T_BOARD
+		       SET
+	          	 USE_YN='N'
+			WHERE BOARD_SEQ=#{boardSeq}
+		]]>
+	</update>
+	
+	<select id="prevSelectList" parameterType="cmmnBoardVO" resultType="cmmnBoardVO">
+		/* cmmnBoard.prevSelectList */
+		SELECT
+			PA.*
+		FROM(
+				SELECT 
+					BOARD_SEQ boardSeq
+					, TITLE title
+					, @rownum:=@rownum+1 rnum
+					, CASE WHEN BOARD_SEQ = #{boardSeq} THEN @rownum2:=@rownum END
+					, @rownum2 rnum2
+					<![CDATA[
+					, CASE WHEN DATE_FORMAT(NOTI_ST_DT,'%Y.%m.%d') <= DATE_FORMAT(NOW(), '%Y.%m.%d') AND DATE_FORMAT(NOW(), '%Y.%m.%d') <= DATE_FORMAT(NOTI_END_DT,'%Y.%m.%d') AND NOTI_YN = 'Y' THEN 'Y'
+				  	ELSE 'N' END notiYn
+				  	]]>
+				FROM T_BOARD TB , (SELECT @rownum:=0) TMP
+				WHERE BOARD_CD = #{boardCd} 
+					AND BOARD_SEQ = BOARD_GRP_SEQ
+					AND USE_YN = 'Y'
+					<include refid="Where"/> 
+				ORDER BY notiYn DESC, BOARD_SEQ DESC
+			) PA
+		WHERE rnum  <![CDATA[<]]> rnum2
+		ORDER BY rnum DESC
+		LIMIT 1
+	</select>
+	
+	<select id="nextSelectList" parameterType="cmmnBoardVO" resultType="cmmnBoardVO">
+		/* cmmnBoard.nextSelectList */
+		SELECT
+			PA.*
+		FROM(
+				SELECT 
+					BOARD_SEQ boardSeq
+					, TITLE title
+					, @rownum:=@rownum+1 rnum
+					, CASE WHEN BOARD_SEQ = #{boardSeq} THEN @rownum2:=@rownum END
+					, @rownum2 rnum2
+					<![CDATA[
+					, CASE WHEN DATE_FORMAT(NOTI_ST_DT,'%Y.%m.%d') <= DATE_FORMAT(NOW(), '%Y.%m.%d') AND DATE_FORMAT(NOW(), '%Y.%m.%d') <= DATE_FORMAT(NOTI_END_DT,'%Y.%m.%d') AND NOTI_YN = 'Y' THEN 'Y'
+				  	ELSE 'N' END notiYn
+				  	]]>
+				FROM T_BOARD TB , (SELECT @rownum:=0) TMP
+				WHERE BOARD_CD = #{boardCd} 
+					AND BOARD_SEQ = BOARD_GRP_SEQ
+					AND USE_YN = 'Y'
+					<include refid="Where"/> 
+				ORDER BY notiYn DESC, BOARD_SEQ DESC
+			) PA
+		WHERE rnum  <![CDATA[>]]> rnum2
+		ORDER BY rnum 
+		LIMIT 1
+	</select>
+
+	
+</mapper> 

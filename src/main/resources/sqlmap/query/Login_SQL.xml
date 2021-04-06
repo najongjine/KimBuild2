@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.open.Login">
+
+	<sql id="Where">
+	</sql>
+	
+	<select id="selectContents" parameterType="loginVO" resultType="loginVO">
+		/* Login.selectContents */
+		<![CDATA[
+		SELECT
+			SEQ seq
+			,ID id
+			,PWD pwd
+			,NAME name
+			,AUTH_CODE authCode
+			,(SELECT AUTH_CODE_NM FROM T_AD_USER_AUTH WHERE A.AUTH_CODE=AUTH_CODE) authCodeNm
+			, DATE_FORMAT(LAST_DATE,'%Y.%m.%d %H:%i:%s') lastDate
+			, SITE_CLCD siteClcd
+		FROM
+			T_AD_USER A
+		WHERE ID = #{id} 
+			AND PWD = #{pwd} 
+			AND USE_YN='Y'
+		]]>
+	</select>
+	
+	<select id="selectLoginDate" parameterType="loginVO" resultType="String">
+		/* Login.selectContents */
+		<![CDATA[
+		SELECT 
+			DATE_FORMAT(PA.RGST_DT,'%Y.%m.%d %H:%i:%s')
+		FROM (
+				SELECT 
+					A.*
+		          , ROW_NUMBER() OVER(ORDER BY RGST_DT DESC) RN
+		        FROM T_LOG A
+		        WHERE RGST_ID = #{loginSeq}
+		      ) PA
+		WHERE PA.RN <= 2
+		]]>
+	</select>
+	
+	<update id="updateContents" parameterType="loginVO">
+		/* Login.updateContents */
+			UPDATE T_AD_USER SET     
+			 	   LAST_DATE = NOW()
+			WHERE  SEQ = #{seq}  
+	</update>
+	
+	
+	
+	
+</mapper>

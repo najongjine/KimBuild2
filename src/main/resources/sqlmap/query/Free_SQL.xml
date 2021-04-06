@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.open.Free">
+
+	<sql id="Where">
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==0">
+				AND (TITLE LIKE CONCAT('%',#{searchKeyword},'%') OR CONT like CONCAT('%',#{searchKeyword},'%'))
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==1">
+				AND TITLE LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+			<if test="searchCondition !=null and searchCondition !='' and searchCondition ==2">
+				AND CONT LIKE CONCAT('%',#{searchKeyword},'%')
+			</if>
+	 	</if>
+	</sql>
+	
+	<select id="selectContents" parameterType="bcmtVO" resultType="bcmtVO">
+		/* board.selectContents */
+		<![CDATA[
+			 SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, ATCH_FILE_ID atchFileId
+				, F_USER_NM(RGST_ID) name
+		     FROM  T_FREE TB
+			 WHERE  USE_YN='Y'	
+				 AND SEQ = #{seq}
+		]]>
+	</select>
+	
+	
+	
+	<select id="selectList" parameterType="cmmnDefaultVO" resultType="bcmtVO">
+		/* board.selectList */
+		<![CDATA[
+      	     SELECT  
+				  SEQ seq
+				, TITLE title
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, F_USER_NM(RGST_ID) name
+				, ATCH_FILE_ID atchFileId
+				, (SELECT COUNT(*) FROM T_FREE_CMT WHERE SUB_SEQ = TB.SEQ AND USE_YN='Y') countCmt  
+		     FROM T_FREE TB
+			 WHERE USE_YN='Y'	
+	      ]]>
+		     <include refid="Where"/>	 
+	     <![CDATA[ 
+	    		ORDER BY SEQ DESC
+				LIMIT  #{firstIndex} , #{recordCountPerPage}
+		]]>
+	</select>	
+		<select id="selectCmtList" parameterType="bcmtVO" resultType="bcmtVO">
+		/* cmt.selectList */
+		<![CDATA[
+      	     SELECT  
+				  BCMT_SEQ bcmtSeq
+				, SUB_SEQ subSeq
+				, CONT cont
+				, DATE_FORMAT(RGST_DT,'%Y.%m.%d') rgstDt
+				, RGST_ID rgstId
+				, F_USER_NM(RGST_ID) name
+		     FROM T_FREE_CMT
+			 WHERE USE_YN='Y'	
+			 	AND SUB_SEQ = #{seq}
+	      ]]>
+	</select>	
+
+
+	<select id="selectCount" parameterType="cmmnDefaultVO" resultType="int">
+		/* board.selectCount */
+		<![CDATA[
+			SELECT 
+				COUNT(SEQ) cnt 
+			FROM T_FREE
+			WHERE USE_YN='Y' 
+		]]>
+			 <include refid="Where"/>
+	</select>
+	
+	<insert id="insertContents" parameterType="bcmtVO">
+		/* board.insertContents */
+		<![CDATA[
+			INSERT INTO T_FREE(
+           	  	  SEQ 
+				, TITLE 
+				, CONT
+				, RGST_ID 
+				, ATCH_FILE_ID 
+			)
+			VALUES (
+				 (SELECT IFNULL(MAX(TB.SEQ)+1,1) FROM T_FREE TB)
+				,#{title ,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+				,#{atchFileId ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+		<insert id="insertCmtContents" parameterType="bcmtVO">
+		/* cmt.insertContents */
+		<![CDATA[
+			INSERT INTO T_FREE_CMT(
+           	  	  SUB_SEQ 
+				, CONT
+				, RGST_ID 
+			)
+			VALUES (
+				 #{subSeq ,jdbcType=VARCHAR}
+				,#{cont ,jdbcType=VARCHAR}
+				,#{loginSeq ,jdbcType=VARCHAR}
+			)
+		]]>
+	</insert>
+	
+	<update id="updateContents" parameterType="bcmtVO">
+		/* board.updateContents */
+		<![CDATA[
+			UPDATE T_FREE     
+			 SET 
+				  TITLE = #{title ,jdbcType=VARCHAR} 
+				, CONT = #{cont ,jdbcType=VARCHAR}
+				, RVSE_DT = NOW()
+				, ATCH_FILE_ID = #{atchFileId ,jdbcType=VARCHAR}
+			WHERE  SEQ = #{seq}  
+		]]>
+	</update>
+	<update id="updateCmtContents" parameterType="bcmtVO">
+		/* cmt.updateContents */
+		<![CDATA[
+			UPDATE T_FREE_CMT     
+			 SET 
+				 CONT = #{updateCmtCont ,jdbcType=VARCHAR}
+				, RVSE_DT = NOW()
+			WHERE  BCMT_SEQ = #{bcmtSeq}  
+		]]>
+	</update>
+	
+	<update id="deleteContents" parameterType="bcmtVO">
+		/* board.deleteContents */
+		<![CDATA[
+			UPDATE T_FREE
+		       SET
+	          	 USE_YN='N'
+			WHERE SEQ=#{seq}
+		]]>
+	</update>
+	<update id="deleteCmtContents" parameterType="bcmtVO">
+		/* cmt.deleteContents */
+		<![CDATA[
+			UPDATE T_FREE_CMT
+		       SET
+	          	 USE_YN='N'
+			WHERE BCMT_SEQ = #{bcmtSeq} 
+		]]>
+	</update>
+
+</mapper>

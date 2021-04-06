@@ -1,0 +1,204 @@
+@charset "utf-8";
+@font-face {
+font-family: 'Nanum Gothic'; /*폰트명명*/
+font-style: normal;
+font-weight: 400;
+/*해당 폰트의 eot, woff, ttf 경로를 건다(순서 지킬 것) -> format : eot - embedded-opentype, woff - woff, ttf - truetype*/
+src: url(../font/NanumGothic-Regular.eot);  /*ie9 compat modes*/
+src: url(../font/NanumGothic-Regular.eot?#iefix) format('embedded-opentype'), /*?#iefix : ie 호환 문제로, ie는 eot 포맷 외에는 해석을 하지 못해 쓰는 속임수. ie9부터는 eot 외 woff도 해석 가능*/
+url(../font/NanumGothic-Regular.woff) format('woff'),
+url(../font/NanumGothic-Regular.ttf) format('truetype');
+}
+/*일부 구버전 모바일용 웹브라우저 대응*/
+/*
+	woff, ttf 포맷을 지원하지 않는 구버전의 모바일 웹브라우저를 위하여 SVG 포맷을 이용하기도 함.
+	SVG 포맷의 서체는 하나의 파일안에 여러 서체를 넣고 id(ex. #HelveticaNeueRegular)를 부여하여 개별적으로 호출 할 수 있음.
+	SVG는 시스템 포맷인 TTF에서도 커버가 안되는 기기들에 대한 대응이므로 맨 마지막에 호출함.
+	ex. url(Helvetica-Regular.svg#HelveticaRegular) farmat('svg');
+*/
+/* 나눔스퀘어 적용 */
+@font-face {
+	font-family: 'NanumSquare';
+	font-style:normal;
+	font-weight:400;
+	src: url(../font/NanumSquareL.eot);
+	src: url(../font/NanumSquareL.eot?#iefix) format('embedded-opentype'),
+	url(../font/NanumSquareL.woff) format('woff'),
+	url(../font/NanumSquareL.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'NanumSquareR';
+	font-style:normal;
+	font-weight:500;
+	src: url(../font/NanumSquareR.eot);
+	src: url(../font/NanumSquareR.eot?#iefix) format('embedded-opentype'),
+	url(../font/NanumSquareR.woff) format('woff'),
+	url(../font/NanumSquareR.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'NanumSquareB';
+	font-style:normal;
+	font-weight:700;
+	src: url(../font/NanumSquareB.eot);
+	src: url(../font/NanumSquareB.eot?#iefix) format('embedded-opentype'),
+	url(../font/NanumSquareB.woff) format('woff'),
+	url(../font/NanumSquareB.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'NanumSquareEB';
+	font-style:normal;
+	font-weight:800;
+	src: url(../font/NanumSquareEB.eot);
+	src: url(../font/NanumSquareEB.eot?#iefix) format('embedded-opentype'),
+	url(../font/NanumSquareEB.woff) format('woff'),
+	url(../font/NanumSquareEB.ttf) format('truetype');
+}
+/*여기까지*/
+@font-face {
+font-family: 'NanumGothicBold';
+font-style: normal;
+font-weight: 700;
+src: url(../font/NanumGothic-Bold.eot);
+src: url(../font/NanumGothic-Bold.eot?#iefix) format('embedded-opentype'),
+url(../font/NanumGothic-Bold.woff) format('woff'),
+url(../font/NanumGothic-Bold.ttf) format('truetype');
+}
+@font-face {
+font-family: 'NanumGothicExtraBold';
+font-style: normal;
+font-weight: 800;
+src: url(../font/NanumGothic-ExtraBold.eot);
+src: url(../font/NanumGothic-ExtraBold.eot?#iefix) format('embedded-opentype'),
+url(../font/NanumGothic-ExtraBold.woff) format('woff'),
+url(../font/NanumGothic-ExtraBold.ttf) format('truetype');
+}
+
+html, body {width: 100%;height:100%;margin:0;padding:0;}
+body {margin:0;padding:0;font-size:12px;line-height:1.4;font-family:'Nanum Gothic', 'malgun gothic', 'dotum';color:#484848; word-spacing:-1px;height:100%;overflow-x:hidden;}
+
+/* inline */
+img {display:inline-block;border:0 none;line-height:1%;}
+cite, code, dfn, del, em, ins, label, q, span, strong {display:inline-block;}
+cite, em, dfn {font-style:normal;}
+sub {vertical-align:bottom;font-family:'dotum';}
+sup {vertical-align:top;font-family:'dotum';}
+hr {display:none;}
+
+/* block */
+h1, h2, h3, h4, h5, h6 {margin:0;font-size:1em;}
+address {font-style:normal;}
+p  {margin:0;box-sizing:border-box;}
+pre {margin:0;font-size:1em;font-family:verdana;}
+
+/* table */
+table {border-spacing:0;border-collapse:collapse;width:100%;}
+/*
+border-collapse:collapse; => 테이블 또는 서로 이웃하는 셀의 보더를 겹쳐서 표현
+border-collapse:separate; => 분리시켜 표현
+border-collapse 속성은 테두리선의 표시방법만 지정하므로 반드시 border 속성으로 구체적인 테두리선의 스타일을 지정해 주어야 합니다.
+*/
+caption {display:none;}
+th,td {padding:0;vertical-align:top;text-align:left;font-weight:normal;}
+
+/* list */
+dd, dl, ol, ul {margin:0;padding:0;}
+li {list-style-type:none;}
+
+/* form */
+form {margin:0;}
+fieldset {margin:0;padding:0;border:none;}
+legend {display:none;}
+textarea {border:1px solid #cccccc;}
+input [type="text"], input.text {height:24px;border:1px solid #cccccc;padding:0 0 0 5px;vertical-align:middle;font-size:12px;background:#fff;line-height:140%;color:#484848;}
+input.check, input.radio {width:13px;height:13px;margin:0px 3px 1px 0;padding:0;vertical-align:middle;}
+select {height:26px;border:1px solid #cccccc;font-size:12px;line-height:140%;vertical-align:middle;margin:0;color:#484848;}
+button {display:inline-block;vertical-align: middle;cursor:pointer; margin:0;padding:0;font-family:'malgun gothic','dotum';white-space:nowrap;text-align: center;}
+a.btn:focus, input.btn:focus,button.btn:focus {outline: none;}
+
+/* basic */
+.hidden {position:absolute;visibility:hidden;top:-9000px;left:-9000px;}
+.display_none {display:none;}
+a {color:#484848; text-decoration:none;}
+
+/* align */
+.l {text-align:left !important;}
+.c {text-align:center !important;}
+.r {text-align:right !important;}
+.t {vertical-align:top !important;}
+.m {vertical-align:middle !important;}
+.b {vertical-align:bottom !important;}
+.fl {float:left !important;}
+.fr {float:right !important;}
+
+/* clear */
+.clear:after{content:".";height:0;font-size:0;visibility:hidden;display:block;clear:both;}
+
+/*margin*/
+.mar_t3 {margin-top:3px !important;}
+.mar_t5 {margin-top:5px !important;}
+.mar_t10 {margin-top:10px !important;}
+.mar_t15 {margin-top:15px !important;}
+.mar_t20 {margin-top:20px !important;}
+.mar_t30 {margin-top:30px !important;}
+.mar_t40 {margin-top:40px !important;}
+.mar_t60 {margin-top:60px !important;}
+.mar_t80 {margin-top:80px !important;}
+.mar_t120 {margin-top:120px !important;}
+
+.mar_b10 {margin-bottom:10px !important;}
+.mar_b15 {margin-bottom:15px !important;}
+.mar_b20 {margin-bottom:20px !important;}
+.mar_b30 {margin-bottom:30px !important;}
+
+.mar_l3 {margin-left:3px !important;}
+.mar_l5 {margin-left:5px !important;}
+.mar_l10 {margin-left:10px !important;}
+.mar_l20 {margin-left:20px !important;}
+
+.mar_r3 {margin-right:3px !important;}
+.mar_r5 {margin-right:5px !important;}
+.mar_r10 {margin-right:10px !important;}
+.mar_r50 {margin-right:50px !important;}
+
+/*padding*/
+.pd_t3 {padding-top:3px !important;}
+.pd_t10 {padding-top:10px !important;}
+.pd_t15 {padding-top:15px !important;}
+.pd_t20 {padding-top:20px !important;}
+
+.pd_b3 {padding-bottom:3px !important;}
+.pd_b10 {padding-bottom:10px !important;}
+.pd_b15 {padding-bottom:15px !important;}
+.pd_b20 {padding-bottom:20px !important;}
+
+.pd_l3 {padding-left:3px !important;}
+.pd_l10 {padding-left:10px !important;}
+.pd_l15 {padding-left:15px !important;}
+.pd_l20 {padding-left:20px !important;}
+
+.pd_r3 {padding-right:3px !important;}
+.pd_r10 {padding-right:10px !important;}
+.pd_r15 {padding-right:15px !important;}
+.pd_r20 {padding-right:20px !important;}
+
+/*width*/
+.w20p {width:20% !important;}
+.w27p {width:27% !important;}
+.w30p {width:30% !important;}
+.w40p {width:40% !important;}
+.w48p {width:48% !important;}
+.w50p {width:50% !important;}
+.w55p {width:55% !important;}
+.w60p {width:60% !important;}
+.w90p {width:90% !important;}
+.w95p {width:95% !important;}
+
+.w100 {width:100px;}
+
+
+/***** font *****/
+.fs13{font-size:13px;}
+.fs14{font-size:14px;}
+.fs15{font-size:15px;}
+.fs16{font-size:16px;}
+.fs18{font-size:18px;}
